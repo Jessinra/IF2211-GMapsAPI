@@ -12,7 +12,7 @@ path = {}
 vertices = None
 weight_matrix = None
 
-debug_mode = True
+debug_mode = True   # debug mode will display some information gathered
 
 """======================= FUNCTION ======================="""
 
@@ -71,7 +71,7 @@ def astar(start_node, end_node):
             estimated_cost = cost_to_reach(current_node) + cost_between_node(current_node, node) + distance_to_end(node, end_node)
 
             if debug_mode:
-                print(current_node, "->", node, "estemated cost:", estimated_cost)
+                print(current_node, "->", node, "estimated cost:", estimated_cost)
 
             # Get prior-minimum cost and path to reach it
             path_string, path_cost = path[node]
@@ -111,8 +111,11 @@ def astar(start_node, end_node):
     final_cost = path[end_node][1]
 
     if debug_mode:
+        print("\n===================== FINAL RESULT ==============")
         print("route:", route)
         print("cost:", final_cost)
+
+    return route, final_cost
 
 
 if __name__ == '__main__':
@@ -132,10 +135,13 @@ if __name__ == '__main__':
 
     weight_matrix = pd.DataFrame(adj_matrix, columns=vertices, index=vertices)
 
-    #
+    if debug_mode:
+        print(weight_matrix)
+        print("\n\n")
+
     start_node = "nd 01"
     end_node = "nd 07"
     init_path(vertices, start_node)
 
     # testing astar
-    astar(start_node, end_node)
+    shortest_path, cost = astar(start_node, end_node)
