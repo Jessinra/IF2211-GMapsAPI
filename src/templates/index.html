@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<title> A Star </title>
+<head>
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='index.css')}}">
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+</head>
+<body>
+
+  <div class="navbar">
+
+    <div class="centered">
+
+      <div class="row">
+        <h2 style="margin:2px; margin-bottom: 10px"> Your Datas </h2>
+      </div>
+
+      <div class="row">
+        <h3 style="margin:2px"> Labels / Vertices : </h3>
+      </div>
+      <div class="row">
+        <select class="select-view"></select>
+      </div>
+      <div style="height: 2px; width: 90%; margin-left:10px; margin-top: 5px; background-color: black"></div>
+      
+      <div class="row">
+        <h3 style="margin:10px 2px 2px 2px"> Edges / Paths : </h3>
+      </div>
+      <div class="row">
+        <select class="select-view"></select>
+      </div>
+      <div style="height: 2px; width: 90%; margin-left:10px; margin-top: 5px; background-color: black"></div>
+      
+      <div class="row">
+        <h2 style="margin:2px; margin-top: 30px"> Buttons </h2>
+      </div>
+
+      <div class="row" style="margin: 0px; margin-top: 10px">
+        <div class="centered centered-button">
+
+          <div class="col"> 
+            <div class="button">
+              <div id="delete-vertex" class="centered centered-text"> Delete Vertex </div>
+            </div>
+          </div>
+
+          <div class="col"> 
+            <div class="button">
+              <div id="delete-edge" class="centered centered-text"> Delete Edge </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="row" style="margin: 0px; margin-top: 10px">
+        <div class="centered centered-button">
+
+          <div class="button">
+            <div id="submit" class="centered centered-text"> Submit All </div>
+          </div>
+          
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="map"></div>
+  <script src="{{url_for('static', filename='index.js')}}" type="text/javascript"></script>
+  <script>
+    // DOM
+    var select = document.getElementsByClassName("select-view");
+    var deleteVertex = document.getElementById("delete-vertex");
+    var deleteEdge = document.getElementById("delete-edge"); 
+    var submitButton = document.getElementById("submit");
+
+    // Method
+    function initMap() {
+      // Variable used
+      var center = {lat: -6.891448, lng: 107.610654};
+
+      // Instance of Map
+      map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 16.2,
+        center: center,
+        mapTypeId: 'terrain'
+      });
+
+      // Event listener
+      map.addListener('click', function(event) {
+        placeMarker(event.latLng);
+      });
+
+      // add Event Listener to delete Vertex button
+      deleteVertex.addEventListener('click', function(event) {
+        if (markers.length === 0)
+          return;
+        // Variable
+        var option = select[0].options[select[0].selectedIndex].value;
+        var idx = select[0].selectedIndex;
+        // Reset the map
+        setMapOnAll(null);
+        // Splice it
+        markers.splice(idx, 1);
+        for(var i = 0; i < markers.length; i++) {
+          var label = markers[i].getLabel();
+          label.text = (i + 1).toString();
+          label.color = 'white';
+          markers[i].setLabel(label);
+        }
+        // Set the map
+        setMapOnAll(map);
+        // Edit the option
+        nodes = [];
+        editOption(0);
+        // Delete all the edges
+        if (edges.length === 0)
+          return;
+        setMapPathOnAll(null);
+        edges = [];
+        paths = [];
+        editOption(1);
+      });
+
+      deleteEdge.addEventListener('click', function() {
+        if (edges.length === 0)
+          return;
+        // Variable
+        var idx = select[1].selectedIndex;
+        // Reset the map
+        setMapPathOnAll(null);
+        edges.splice(idx, 1);
+        paths.splice(idx, 1);
+        // Set the map
+        setMapPathOnAll(map);
+        // Edit the option
+        editOption(1);
+      });
+
+      submitButton.addEventListener('click', function() {
+        if (edges.length === 0 || markers === 0) {
+          alert("Fill the edges and markers first!");
+          return;
+        }
+        // Set the nodes
+        var dict = {};
+        dict["Nodes"] = nodes;
+        dict["Edges"] = edges;
+        console.log(dict);
+
+        // Make http request
+        var http = new XMLHttpRequest();
+        http.open("POST", "post_data", true);
+        http.setRequestHeader("Content-type", "application/json");
+        http.send(JSON.stringify(dict));
+        // Redirect
+        window.location.href = "http://google.com";
+      })
+    }
+  </script>
+
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?libraries=geometry&key=AIzaSyAn4AW5SuVTRR5zAvwCUBgYd9knBUbP3kw&callback=initMap">
+  </script>
+
+</body>
+</html>

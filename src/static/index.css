@@ -1,0 +1,75 @@
+body {
+  margin:0px;
+  padding:0px;
+  font-family: 'Roboto', sans-serif;
+}
+
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  text-indent: 1px;
+  text-overflow: '';
+}
+
+#map {
+  height: 100vh;
+  width: 100%;
+}
+
+.col {
+  display: inline-block;
+  padding: 0px;
+  margin: 10px;
+}
+
+.row {
+  margin: 3px 0px 3px 10px;
+}
+
+.select-view {
+  border: #000 2px solid;
+  width: 250px;
+  height: 35px;
+  background-color: white;
+  border-radius: 10px;
+  padding-left: 10px;
+}
+
+.navbar {
+  margin: 0px;
+  background-color: #FFF;
+  position: fixed;
+  width: 25%;
+  height: 100vh;
+  z-index: 2;
+}
+
+.centered {
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.centered-text {
+  align-items: center;
+}
+
+.centered-button {
+  flex-direction: row !important;
+}
+
+.option-text {
+  font-size: 15px;
+}
+
+.button {
+  border: #000 2px solid;
+  width: 120px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: white;
+  cursor: pointer;
+}
