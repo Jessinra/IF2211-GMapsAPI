@@ -1,5 +1,8 @@
 /.idea/
 /test2.py
 /__pycache__
-env/
 /example_driving_distance_query.jra
+
+env/
+envmaps/
+
