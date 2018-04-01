@@ -11,7 +11,8 @@ unreachable = unr = -1
 astar_queue = []
 path = {}
 vertices = None
-weight_matrix = None
+distance_mat = None
+heuristic_mat = None
 
 debug_mode = True   # debug mode will display some information gathered
 
@@ -58,19 +59,56 @@ def sphere_distance(point_a, point_b):
     return distance
 
 
-def get_vertices(raw_data):
+def get_vertices(raw_nodes_data):
 
     vertices = []
-    for item in raw_data:
+    for item in raw_nodes_data:
 
         vertex_name = "V_" + "{:0>2}".format(int(item['label']))
         vertices.append(vertex_name)
 
     return vertices
 
-def get_distance_matrix(raw_data):
+
+def get_distance_matrix(raw_edge_data, node_count):
+
+    # initialize weight matrix with unreachable (-1)
+    matrix = [[unr for _ in range(node_count)] for _ in range(node_count)]
+
+    for edge in raw_edge_data:
+        point_a = int(edge['v1']['label']) -1
+        point_b = int(edge['v2']['label']) -1
+
+        matrix[point_a][point_b] = int(edge['dist'])
+        matrix[point_b][point_a] = int(edge['dist'])
+
+    return matrix
 
 
+def get_heuristic_distance_matrix(raw_nodes_data):
+
+    node_count = len(raw_nodes_data)
+
+    # initialize heuristic matrix with unreachable (-1)
+    matrix = [[unr for _ in range(node_count)] for _ in range(node_count)]
+
+    for i in range(0,node_count):
+        for j in range(i, node_count):
+
+            if i != j:
+
+                point_a = raw_nodes_data[i]
+                point_b = raw_nodes_data[j]
+
+                distance = sphere_distance(point_a, point_b)
+
+                idx_a = int(point_a['label']) -1
+                idx_b = int(point_b['label']) -1
+
+                matrix[idx_a][idx_b] = distance
+                matrix[idx_b][idx_a] = distance
+
+    return matrix
 
 
 def astar(start_node, end_node):
@@ -82,10 +120,12 @@ def astar(start_node, end_node):
     :type end_node: string
     """
 
+    global vertices, distance_mat, heuristic_mat, path, astar_queue
+
     def filter_weight(node):
         """ Get DF of possible node to visit """
 
-        temp = weight_matrix[weight_matrix[node:node] != unreachable].dropna(how='all').dropna(axis='columns')
+        temp = distance_mat[distance_mat[node:node] != unreachable].dropna(how='all').dropna(axis='columns')
         return temp
 
     def cost_to_reach(node):
@@ -97,13 +137,14 @@ def astar(start_node, end_node):
     def cost_between_node(node_a, node_b):
         """ Get cost between nodes according to weight matrix """
 
-        return weight_matrix[node_b][node_a]
+        return distance_mat[node_b][node_a]
 
-    def distance_to_end(node, end_node):
+    def distance_to_end(node_a, node_b):
         """ Heuristic cost of 2 nodes (euclidean distance) """
-        # delete after not use
-        return 0
 
+        return heuristic_mat[node_b][node_a]
+
+    init_path(vertices, start_node)
     current_node = start_node
     while current_node != end_node:
 
@@ -118,16 +159,18 @@ def astar(start_node, end_node):
 
             if debug_mode:
                 print(current_node, "->", node, "estimated cost:", estimated_cost)
+                print("{} + {} + {} ".format(cost_to_reach(current_node) , cost_between_node(current_node, node) , distance_to_end(node, end_node)))
 
             # Get prior-minimum cost and path to reach it
             path_string, path_cost = path[node]
 
             # If current estimated cost is better,
-            if estimated_cost <= path_cost:
+            minimum_cost_to_node = cost_to_reach(current_node) + cost_between_node(current_node, node)
+            if minimum_cost_to_node <= path_cost:
 
                 # update the path
                 path_string = path[current_node][0] + " -> " + str(current_node)
-                path_cost = estimated_cost
+                path_cost = minimum_cost_to_node
                 path[node] = (path_string, path_cost)
 
                 # add to queue
@@ -145,6 +188,9 @@ def astar(start_node, end_node):
 
             # Get next node to check
             current_node = heappop(astar_queue)[1]
+
+            if debug_mode:
+                print("\ncurrent node: ", current_node)
 
         except:
             print("no more element to pop, node unreachable")
@@ -164,30 +210,32 @@ def astar(start_node, end_node):
     return route, final_cost
 
 
-if __name__ == '__main__':
+def init_astar(raw_data):
 
-    """====================== SAMPLE DATA ======================"""
+    global vertices, distance_mat, heuristic_mat, path, astar_queue
 
-    vertices = ["nd 01", "nd 02", "nd 03", "nd 04", "nd 05", "nd 06", "nd 07", "nd 08"]
-    adj_matrix = [[unr, unr, unr, unr, unr, 12, unr, 5],
-                  [unr, unr, 6, unr, unr, 22, unr, 7],
-                  [unr, 6, unr, 3, unr, unr, 16, unr],
-                  [unr, unr, 3, unr, unr, 2, 17, unr],
-                  [unr, unr, unr, unr, unr, unr, unr, unr],
-                  [12, 22, unr, 2, unr, unr, unr, unr],
-                  [unr, unr, 16, 17, unr, unr, unr, unr],
-                  [5, 7, unr, unr, unr, unr, unr, unr],
-                  ]
+    raw_nodes_data = raw_data['Nodes']
+    raw_edge_data = raw_data['Edges']
 
-    weight_matrix = pd.DataFrame(adj_matrix, columns=vertices, index=vertices)
+    vertices = get_vertices(raw_nodes_data)
+
+    distance_mat = get_distance_matrix(raw_edge_data, node_count=len(vertices))
+    distance_mat = pd.DataFrame(distance_mat, columns=vertices, index=vertices)
+
+    heuristic_mat = get_heuristic_distance_matrix(raw_nodes_data)
+    heuristic_mat = pd.DataFrame(heuristic_mat, columns=vertices, index=vertices)
 
     if debug_mode:
-        print(weight_matrix)
+        print("distance_mat")
+        print(distance_mat)
         print("\n\n")
 
-    start_node = "nd 01"
-    end_node = "nd 07"
-    init_path(vertices, start_node)
+        print("heuristic_mat")
+        print(heuristic_mat)
+        print("\n\n")
 
-    # testing astar
-    shortest_path, cost = astar(start_node, end_node)
+
+
+
+
+

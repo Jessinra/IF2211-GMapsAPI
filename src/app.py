@@ -2,6 +2,8 @@ from flask import Flask, render_template, make_response, url_for, request, jsoni
 import json
 import os
 
+from src.Astar import *
+
 # import webview
 # import sys
 # import threading
@@ -29,7 +31,14 @@ def post_data():
         data = request.data
         data = data.decode("utf-8")
         data = json.loads(data)
-        print(data["Nodes"])
+
+        init_astar(data)
+
+        # Test sample 
+        start_node = "V_01"
+        end_node = "V_05"
+        shortest_path, cost = astar(start_node, end_node)
+
         return render_template('index.html')
 
 
