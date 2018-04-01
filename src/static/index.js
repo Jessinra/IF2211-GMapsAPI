@@ -3,6 +3,127 @@ var markers = [], nodes = [];
 var edge = [], edges = [], paths = [];
 // Variable map
 var map;
+// DOM
+var select = document.getElementsByClassName("select-view");
+var selectPath = document.getElementsByClassName("select-path");
+var deleteVertex = document.getElementById("delete-vertex");
+var deleteEdge = document.getElementById("delete-edge"); 
+var deleteVertices = document.getElementById("delete-vertices");
+var deleteEdges = document.getElementById("delete-edges"); 
+var submitButton = document.getElementById("submit");
+
+// Method
+function initMap() {
+  // Variable used
+  var center = {lat: -6.891448, lng: 107.610654};
+
+  // Instance of Map
+  map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 16.2,
+    center: center,
+    mapTypeId: 'terrain'
+  });
+
+  // Event listener
+  map.addListener('click', function(event) {
+    placeMarker(event.latLng);
+  });
+
+  // add Event Listener to all the button and text related!
+
+  deleteVertex.addEventListener('click', function() {
+    if (markers.length === 0)
+      return;
+    // Variable
+    var option = select[0].options[select[0].selectedIndex].value;
+    var idx = select[0].selectedIndex;
+    // Reset the map
+    setMapOnAll(null);
+    // Splice it
+    markers.splice(idx, 1);
+    // Reset nodes
+    nodes = []
+    // Iterate and edit all
+    for(var i = 0; i < markers.length; i++) {
+      var label = markers[i].getLabel();
+      label.text = (i + 1).toString();
+      label.color = 'white';
+      markers[i].setLabel(label);
+      // Add node
+      var node = {
+        label:(i+1).toString(), 
+        lat:markers[i].getPosition().lat(), 
+        lng:markers[i].getPosition().lng()
+      };
+      nodes.push(node);
+    }
+    // Set the map
+    setMapOnAll(map);
+    // Edit the option
+    editOption(0);
+    // Delete all the edges
+    if (edges.length === 0)
+      return;
+    setMapPathOnAll(null);
+    edges = [];
+    paths = [];
+    editOption(1);
+  });
+
+  deleteEdge.addEventListener('click', function() {
+    if (edges.length === 0)
+      return;
+    // Variable
+    var idx = select[1].selectedIndex;
+    // Reset the map
+    setMapPathOnAll(null);
+    edges.splice(idx, 1);
+    paths.splice(idx, 1);
+    // Set the map
+    setMapPathOnAll(map);
+    // Edit the option
+    editOption(1);
+  });
+
+  deleteVertices.addEventListener('click', function() {
+    // Set map to null
+    setMapOnAll(null);
+    setMapPathOnAll(null);
+    // Reset all
+    markers = []; nodes = []; edges = []; edge = []; paths = [];
+    // Edit the option
+    editOption(0);
+    editOption(1);
+    alert("Delete all nodes and the paths..");
+  });
+
+  deleteEdges.addEventListener('click', function() {
+    setMapPathOnAll(null);
+    edges = []; paths = [];
+    editOption(1);
+    alert("All paths deleted..");
+  });
+
+  submitButton.addEventListener('click', function() {
+    if (edges.length === 0 || markers === 0) {
+      alert("Fill the edges and markers first!");
+      return;
+    }
+    // Set the nodes
+    var dict = {};
+    dict["Nodes"] = nodes;
+    dict["Edges"] = edges;
+    dict["From"] = selectPath[0].options[selectPath[0].selectedIndex].value;
+    dict["To"] = selectPath[1].options[selectPath[1].selectedIndex].value;
+    console.log(dict);
+    // Make http request
+    var http = new XMLHttpRequest();
+    http.open("POST", "post_data", true);
+    http.setRequestHeader("Content-type", "application/json");
+    http.send(JSON.stringify(dict));
+    alert("Data submitted!")
+  })
+}
 
 // Place the marker in map
 function placeMarker(location) {
@@ -25,57 +146,92 @@ function placeMarker(location) {
   });
   // Push it to list
   markers.push(marker);
-  addToSelect(0, markers.length - 1);
+  // Add to list of nodes
+  var node = {
+    label:(markers.length).toString(), 
+    lat:marker.getPosition().lat(), 
+    lng:marker.getPosition().lng()
+  };
+  nodes.push(node);
+  // add to select option
+  addToOption(0, markers.length - 1);
+  addToPathChoice(markers.length - 1);
 }
 
+// Set picture marker to map
 function setMapOnAll(map) {
   for (var i = 0; i < markers.length; i++) {
     markers[i].setMap(map);
   }
 }
 
+// Set picture path to map
 function setMapPathOnAll(map) {
   for (var i = 0; i < paths.length; i++) {
     paths[i].setMap(map);
   }
 }
 
-function addToSelect(i, index) {
+function addToOption(i, index) {
   // Variable
   var str;
 
   if (i === 0) {
-    var lat = markers[index].getPosition().lat().toFixed(4);
-    var lng = markers[index].getPosition().lng().toFixed(4);
+    var lat = nodes[index].lat.toFixed(4);
+    var lng = nodes[index].lng.toFixed(4);
     str = (index+1).toString() + ". (" + lat.toString() + ", " + lng.toString() + ")";
-    var node = {label:(index+1).toString() ,lat:lat, lng:lng};
-    nodes.push(node);
-  } else { // I === 1
+  } else { // i === 1
     var label1 = edges[index].v1.label;
     var label2 = edges[index].v2.label;
-    str = (index+1).toString() + ". ( " + label1 + " - " + label2 + " )";
+    str = (index+1).toString() + ". ( Path " + label1 + " and " + label2 + " )";
   }
   console.log(str);
+  // Add to option
   var option = document.createElement("option");
   option.classList.add("option-text");
   option.text = str;
   select[i].add(option);
 }
 
+function addToPathChoice(index) {
+  var str = (index+1).toString();
+  // Option 1
+  var option = document.createElement("option");
+  option.classList.add("option-text");
+  option.text = str;
+  selectPath[0].add(option);
+  // Option 2
+  var option = document.createElement("option");
+  option.classList.add("option-text");
+  option.text = str;
+  selectPath[1].add(option);
+}
+
 function editOption(idx) {
   var length = select[idx].length;
   // Delete all
   for (var i = 0; i < length; i++) {
-    var option = select[idx].options[select[idx].selectedIndex].value;
-    select[idx].remove(option);
+    select[idx].remove(0);
+    // Remove the select option in the path
+    if (idx === 0) {
+      if (selectPath[0].length > 0)
+        selectPath[0].remove(0);
+      if (selectPath[1].length > 0)
+      selectPath[1].remove(0);
+    }
   }
   if (idx === 0)
-    length = markers.length;
+    length = nodes.length;
   else
     length = edges.length;
+  console.log(length);
   // Add the other
   for (var i = 0; i < length; i++) {
-    addToSelect(idx, i);
+    addToOption(idx, i);
+    if (idx === 0) {
+      // Add again to path
+      addToPathChoice(i);
+    }
   }
 } 
 
@@ -135,5 +291,5 @@ function addPath(loc1, loc2) {
   console.log(flightPath.getPath().b[0]);
   flightPath.setMap(map);
   paths.push(flightPath);
-  addToSelect(1, edges.length - 1);
+  addToOption(1, edges.length - 1);
 }
