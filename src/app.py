@@ -33,10 +33,7 @@ def post_data():
         data = json.loads(data)
 
         init_astar(data)
-
-        # Test sample 
-        start_node = "V_01"
-        end_node = "V_05"
+        start_node, end_node = get_start_end(data)
         shortest_path, cost = astar(start_node, end_node)
 
         return render_template('index.html')

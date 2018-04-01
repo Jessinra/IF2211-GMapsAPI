@@ -111,6 +111,17 @@ def get_heuristic_distance_matrix(raw_nodes_data):
     return matrix
 
 
+def get_start_end(raw_data):
+
+    start = raw_data['From']
+    end = raw_data['To']
+
+    start = "V_" + "{:0>2}".format(int(start))
+    end = "V_" + "{:0>2}".format(int(end))
+
+    return start, end
+
+
 def astar(start_node, end_node):
     """
     A* algorithm to find shortest path
