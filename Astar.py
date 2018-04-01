@@ -3,6 +3,7 @@
 
 import pandas as pd
 from heapq import *
+from math import sin, cos, sqrt, atan2, radians
 
 """=============== CONSTANT & GLOBAL VALUE ================"""
 
@@ -25,6 +26,51 @@ def init_path(vertices, start_node):
 
     # Set starting node to have no cost
     path[start_node] = ("", 0)
+
+
+def sphere_distance(point_a, point_b):
+    """
+    Return distance in meter
+    :param point_a: starting point
+    :type point_a: dict
+    :param point_b: ending point
+    :type point_b: dict
+    :return: distance in meter
+    :rtype: int
+    """
+
+    # approximate radius of earth in km
+    earth_r = 6373.0
+
+    lat1 = radians(float(point_a["lat"]))
+    lon1 = radians(float(point_a["lng"]))
+    lat2 = radians(float(point_b["lat"]))
+    lon2 = radians(float(point_b["lng"]))
+
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    distance = int(earth_r * c * 1000)
+
+    return distance
+
+
+def get_vertices(raw_data):
+
+    vertices = []
+    for item in raw_data:
+
+        vertex_name = "V_" + "{:0>2}".format(int(item['label']))
+        vertices.append(vertex_name)
+
+    return vertices
+
+def get_distance_matrix(raw_data):
+
+
 
 
 def astar(start_node, end_node):
