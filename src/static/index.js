@@ -553,7 +553,7 @@ function animateResult(path) {
 			var flightPath = new google.maps.Polyline({
 				path: flightPlanCoordinates,
 				geodesic: true,
-				strokeColor: '#FF9800',
+				strokeColor: '#f3dd46',
 				strokeOpacity: 1.0,
 				strokeWeight: 3
 			});

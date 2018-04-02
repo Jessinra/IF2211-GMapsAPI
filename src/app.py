@@ -1,7 +1,7 @@
 from flask import Flask, render_template, make_response, url_for, request, jsonify
 import json
 import os
-from Astar import *
+from src.Astar import *
 import os, webview, threading
 
 app = Flask(__name__)
