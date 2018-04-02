@@ -24,10 +24,6 @@ body {
 }
 
 .select-view {
-    /*  -webkit-appearance: none;
-      -moz-appearance: none;
-      text-indent: 1px;
-      text-overflow: '';*/
     border: #000 2px solid;
     width: 290px;
     height: 35px;
@@ -50,7 +46,7 @@ body {
     position: fixed;
     width: 25%;
     height: 100vh;
-    z-index: 2;
+    z-index: 1;
 }
 
 .centered {
@@ -74,6 +70,13 @@ body {
     font-size: 15px;
 }
 
+.center-map {
+    z-index: 1;
+    position: fixed;
+    right: 1rem;
+    border: 0px !important;
+}
+
 .button {
     border: #000 2px solid;
     width: 120px;
@@ -81,4 +84,43 @@ body {
     border-radius: 10px;
     background-color: white;
     cursor: pointer;
+}
+
+#nav-toogle {
+    display: none;
+}
+
+#nav-button {
+    background-color: #FFF;
+    z-index: 1;
+    height: 60px;
+    width: 60px;
+    position: fixed;
+    border-radius: 50%;
+    cursor: pointer;
+    top: 3rem;
+    right: 1rem;
+}
+
+#nav-button:hover {
+    background-color: #BDBDBD;
+}
+
+.tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    top:6px;
+    left:-130px;
+    padding: 5px 0;
+
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+}
+
+.centered-text:hover .tooltiptext {
+    visibility: visible;
 }
