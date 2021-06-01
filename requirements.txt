@@ -17,5 +17,5 @@ pywebview==1.8
 requests==2.18.4
 sip==4.19.8
 six==1.11.0
-urllib3==1.22
+urllib3==1.26.5
 Werkzeug==0.14.1
